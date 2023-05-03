@@ -21,7 +21,7 @@ def fig_to_base64(fig):
   
 def main():
     try:
-
+        print("^^^DEBUG^^^<br><br><br><br>")
         # Load stock data
         STOCK_NAME = sys.argv[1]
         print("Stock Name: " + STOCK_NAME + "<br>")

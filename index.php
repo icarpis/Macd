@@ -14,17 +14,21 @@ if (!isset($_GET["end_date"])) {
 	exit;
 }
 
+$script_name = "./MACD.py";
+$debug_script_name = "./MACD2.py";
 
 $stock_name_val = $_GET["stock_name"];
 $start_date = $_GET["start_date"];
 $end_date = $_GET["end_date"];
 
-$output = shell_exec("py ./MACD.py $stock_name_val $start_date $end_date");
+if (isset($_GET["debug"])) {
+    $output = shell_exec("py ".$debug_script_name . " " . $stock_name_val . " " . $start_date . " " . $end_date);
+	echo $output;
+} else {
+	$output = shell_exec("py ".$script_name . " " . $stock_name_val . " " . $start_date . " " . $end_date);
+	echo $output;
+}
 
-echo $output;
 
-$filepath1 = '.\Cash.png'; 
-echo '<img src="'.$filepath1.'">';
 
-$filepath2 = '.\StockPrice.png'; 
-echo '<img src="'.$filepath2.'">';
+
