@@ -6,14 +6,13 @@ from datetime import datetime as dt
 import sys
 import io
 import plotly.graph_objs as go
-
+import datetime
 
     
 
   
 def main():
     try:
-
         # Load stock data
         STOCK_NAME = sys.argv[1]
         print("Stock Name: " + STOCK_NAME + "<br>")
@@ -31,7 +30,7 @@ def main():
         
         tz = pytz.timezone("Israel")
         start_date = tz.localize(dt(START_YEAR,START_MONTH, START_DAY))
-        end_date = tz.localize(dt(END_YEAR,END_MONTH, END_DAY))
+        end_date = tz.localize(dt(END_YEAR,END_MONTH, END_DAY) + datetime.timedelta(days=1))
         stock_data = yf.download(stock_ticker, start=start_date, end=end_date)
 
         # Calculate MACD indicator
