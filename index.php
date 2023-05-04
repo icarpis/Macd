@@ -24,7 +24,7 @@ $end_date = $_GET["end_date"];
 if (isset($_GET["debug"])) {
 	#phpinfo();
 	file_put_contents($debug_script_name, "");
-	file_put_contents($debug_script_name, fopen("https://raw.githubusercontent.com/icarpis/MACD/master/MACD_DEBUG.py", 'r'));
+	file_put_contents($debug_script_name, fopen("https://raw.githubusercontent.com/gandelmanb/MACD/master/MACD_DEBUG.py", 'r'));
     $output = shell_exec("py ".$debug_script_name . " " . $stock_name_val . " " . $start_date . " " . $end_date);
     echo $output;
 } else {
