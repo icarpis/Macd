@@ -13,6 +13,7 @@ import plotly.graph_objs as go
   
 def main():
     try:
+        print("TESTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT")
         print("^^^DEBUG^^^<br><br><br><br>")
         # Load stock data
         STOCK_NAME = sys.argv[1]
