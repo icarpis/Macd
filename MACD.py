@@ -1,21 +1,13 @@
 import pandas as pd
 import yfinance as yf
 import numpy as np
-import matplotlib.pyplot as plt
 import pytz
 from datetime import datetime as dt
 import sys
 import io
-import base64
+import plotly.graph_objs as go
 
 
-def fig_to_base64(fig):
-    img = io.BytesIO()
-    fig.savefig(img, format='png',
-                bbox_inches='tight')
-    img.seek(0)
-
-    return base64.b64encode(img.getvalue())
     
 
   
@@ -53,26 +45,39 @@ def main():
 
         df = MACD(stock_data, 12, 26, 9)
 
-        # Plot MACD and stock price
-        fig, ax = plt.subplots(figsize=(12, 6))
-        ax.plot(df.index, df["Close"], label="Stock Price - " + STOCK_NAME)
-        ax.legend(loc="upper left")
-        ax.set_xlabel("Date")
-        ax.set_ylabel("Stock Price")
-        ax2 = ax.twinx()
-        ax2.plot(df.index, df["MACD"], label="MACD")
-        ax2.plot(df.index, df["Signal"], label="Signal")
-        ax2.bar(df.index, df["Histogram"], width=1, color="gray", alpha=0.5)
-        ax2.legend(loc="upper right")
 
         # Buy and sell signals
         df["Buy"] = (df["MACD"] > df["Signal"]) & (df["MACD"].shift() < df["Signal"].shift())
         df["Sell"] = (df["MACD"] < df["Signal"]) & (df["MACD"].shift() > df["Signal"].shift())
 
-        # Plot buy and sell signals
-        ax.plot(df[df["Buy"]].index, df[df["Buy"]]["Close"], marker="^", markersize=10, color="green", label="Buy")
-        ax.plot(df[df["Sell"]].index, df[df["Sell"]]["Close"], marker="v", markersize=10, color="red", label="Sell")
-        ax.legend(loc="upper left")
+
+        exp1 = df['Close'].ewm(span=12, adjust=False).mean()
+        exp2 = df['Close'].ewm(span=26, adjust=False).mean()
+        macd = exp1 - exp2
+        signal = macd.ewm(span=9, adjust=False).mean()
+        hist = macd - signal
+
+        # Create figure
+        fig = go.Figure()
+
+        # Add trace for stock price
+        fig.add_trace(go.Scatter(x=df.index, y=df["Close"], name="Stock Price"))
+
+        # Add trace for MACD
+        fig.add_trace(go.Scatter(x=df.index, y=macd, name="MACD"))
+
+        # Add trace for signal
+        fig.add_trace(go.Scatter(x=df.index, y=signal, name="Signal"))
+
+        # Add trace for histogram
+        fig.add_trace(go.Bar(x=df.index, y=hist, name="Histogram"))
+
+        # Add buy and sell signals
+        buy_signals = df[(macd > signal) & (macd.shift() < signal.shift())]
+        sell_signals = df[(macd < signal) & (macd.shift() > signal.shift())]
+
+        fig.add_trace(go.Scatter(x=buy_signals.index, y=buy_signals["Close"], mode="markers", marker=dict(symbol="triangle-up", size=10, color="green"), name="Buy"))
+        fig.add_trace(go.Scatter(x=sell_signals.index, y=sell_signals["Close"], mode="markers", marker=dict(symbol="triangle-down", size=10, color="red"), name="Sell"))
 
 
         # Print buy and sell signals
@@ -89,6 +94,7 @@ def main():
         cash_list = []
         cash_list.append(first_investment)
         dates_list.append(df["Date"][0])
+
 
         last_sell_cash = None
         success_rate = 0
@@ -132,19 +138,11 @@ def main():
         print("Passive Investment Profit: {:.2f} %<br>".format(passive_investment_profit))
         
         print("Success Rate: {:.2f} %<br>".format((success_rate/num_of_sells) * 100))
-
-        fig2, ax2 = plt.subplots(figsize=(12, 6))
-        ax2.plot(dates_list, cash_list, label="Cash - " + STOCK_NAME)
-        ax2.legend(loc="upper left")
-        ax2.set_xlabel("Date")
-        ax2.set_ylabel("Cash Balance")
         
-        encoded = fig_to_base64(fig2)
-        print('<br><br><img src="data:image/png;base64, {}">'.format(encoded.decode('utf-8')))
-
-        encoded = fig_to_base64(fig)
-        print('<br><br><img src="data:image/png;base64, {}">'.format(encoded.decode('utf-8')))
+        fig.add_trace(go.Scatter(x=dates_list, y=cash_list, name="Cash"))
         
+        print('<br><br>' + fig.to_html(full_html=False, include_plotlyjs='cdn'))
+
     except Exception as er:
         print("<br><br>ERROR!!!!!!!!!!!!!!<br>")
         print(er)

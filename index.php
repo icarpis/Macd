@@ -15,7 +15,7 @@ if (!isset($_GET["end_date"])) {
 }
 
 $script_name = "./MACD.py";
-$debug_script_name = "./MACD2.py";
+$debug_script_name = "./MACD_DEBUG.py";
 
 $stock_name_val = $_GET["stock_name"];
 $start_date = $_GET["start_date"];
