@@ -8,9 +8,33 @@ import io
 import plotly.graph_objs as go
 import datetime
 
-    
 
-  
+
+def print_signals(df):
+    try:
+        buy_signals = df[df["Buy"]].reset_index()[["Date", "Close"]]
+        sell_signals = df[df["Sell"]].reset_index()[["Date", "Close"]]
+        buy_signals["Signal Type"] = "Buy"
+        sell_signals["Signal Type"] = "Sell"
+
+        signals = pd.concat([buy_signals, sell_signals]).sort_values(by="Date").reset_index(drop=True)
+
+        # print buy signals
+        idx = 1
+        print("<br><br>Signals:<br>")
+        for index, row in signals.iterrows():
+            if (row["Signal Type"] == "Buy"):
+                print(str(idx) + ". Buy Signal: ")
+            else:
+                print(str(idx) + ". Sell Signal: ")
+
+            idx+=1
+            print("{} - {:.2f}<br>".format(row['Date'].strftime('%Y-%m-%d'), row['Close']))
+    except:
+        pass
+
+
+
 def main():
     try:
         # Load stock data
@@ -78,12 +102,7 @@ def main():
         fig.add_trace(go.Scatter(x=buy_signals.index, y=buy_signals["Close"], mode="markers", marker=dict(symbol="triangle-up", size=10, color="green"), name="Buy"))
         fig.add_trace(go.Scatter(x=sell_signals.index, y=sell_signals["Close"], mode="markers", marker=dict(symbol="triangle-down", size=10, color="red"), name="Sell"))
 
-
-        # Print buy and sell signals
-        print("<br>Buy signals:<br>")
-        print(df[df["Buy"]]["Close"])
-        print("<br><br>Sell signals:<br>")
-        print(df[df["Sell"]]["Close"])
+        print_signals(df)
 
         df["Date"] = df.index
 
