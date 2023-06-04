@@ -10,10 +10,10 @@ import datetime
 
 
 
-def print_signals(buy_signals, sell_signals):
+def print_signals(df):
     try:
-        #buy_signals = df[df["Buy"]].reset_index()[["Date", "Close"]]
-        #sell_signals = df[df["Sell"]].reset_index()[["Date", "Close"]]
+        buy_signals = df[df["Buy"]].reset_index()[["Date", "Close"]]
+        sell_signals = df[df["Sell"]].reset_index()[["Date", "Close"]]
         buy_signals["Signal Type"] = "Buy"
         sell_signals["Signal Type"] = "Sell"
 
@@ -97,13 +97,13 @@ def handle_stock(stock_list):
         fig.add_trace(go.Bar(x=df.index, y=hist, name=STOCK_NAME + " Histogram"))
 
         # Add buy and sell signals
-        buy_signals = df[(macd > signal) & (macd.shift() < signal.shift())].reset_index()[["Date", "Close"]]
-        sell_signals = df[(macd < signal) & (macd.shift() > signal.shift())].reset_index()[["Date", "Close"]]
+        buy_signals = df[(macd > signal) & (macd.shift() < signal.shift())]
+        sell_signals = df[(macd < signal) & (macd.shift() > signal.shift())]
 
         fig.add_trace(go.Scatter(x=buy_signals.index, y=buy_signals["Close"], mode="markers", marker=dict(symbol="triangle-up", size=10, color="green"), name=STOCK_NAME + " Buy"))
         fig.add_trace(go.Scatter(x=sell_signals.index, y=sell_signals["Close"], mode="markers", marker=dict(symbol="triangle-down", size=10, color="red"), name=STOCK_NAME + " Sell"))
 
-        print_signals(buy_signals, sell_signals)
+        print_signals(df)
 
         df["Date"] = df.index
 
