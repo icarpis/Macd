@@ -10,10 +10,10 @@ import datetime
 
 
 
-def print_signals(df):
+def print_signals(buy_signals, sell_signals):
     try:
-        buy_signals = df[df["Buy"]].reset_index()[["Date", "Close"]]
-        sell_signals = df[df["Sell"]].reset_index()[["Date", "Close"]]
+        buy_signals = buy_signals.reset_index()[["Date", "Close"]]
+        sell_signals = sell_signals.reset_index()[["Date", "Close"]]
         buy_signals["Signal Type"] = "Buy"
         sell_signals["Signal Type"] = "Sell"
 
@@ -103,7 +103,7 @@ def handle_stock(stock_list):
         fig.add_trace(go.Scatter(x=buy_signals.index, y=buy_signals["Close"], mode="markers", marker=dict(symbol="triangle-up", size=10, color="green"), name=STOCK_NAME + " Buy"))
         fig.add_trace(go.Scatter(x=sell_signals.index, y=sell_signals["Close"], mode="markers", marker=dict(symbol="triangle-down", size=10, color="red"), name=STOCK_NAME + " Sell"))
 
-        print_signals(df)
+        print_signals(buy_signals, sell_signals)
 
         df["Date"] = df.index
 
@@ -152,9 +152,10 @@ def handle_stock(stock_list):
         # Print final investment value and profit
         print("Start Date: " + sys.argv[2])
         print("<br>End Date: " + sys.argv[3])
-        print("<br><br>Profit: {:.2f} %<br>".format(profit))
-
-        print("Cash Investment Precentage on Buy Signal: {}%<br>".format(INVEST_PERCENTAGE))
+        
+        print("<br><br>Cash Investment Precentage on Buy Signal: {}%<br>".format(INVEST_PERCENTAGE))
+        
+        print("<br>Profit: {:.2f} %<br>".format(profit))
 
         first_investment_shares = first_investment / df["Close"][0]
         passive_investment_profit = first_investment_shares * df["Close"][-1] - first_investment
