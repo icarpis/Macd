@@ -72,6 +72,10 @@ def handle_stock(stock_list):
         END_YEAR = int(END_DATE[0])
         END_MONTH = int(END_DATE[1])
         END_DAY = int(END_DATE[2])
+
+        INVEST_PERCENTAGE = 100
+        if (len(sys.argv) >= 6):
+            INVEST_PERCENTAGE = int(sys.argv[5])
         
         tz = pytz.timezone("Israel")
         start_date = tz.localize(dt(START_YEAR,START_MONTH, START_DAY))
@@ -118,9 +122,10 @@ def handle_stock(stock_list):
         shares = 0
         for i in range(len(df)):
             if df["Buy"][i] == True:
-                shares_to_buy = cash / df["Close"][i]  # calculate number of shares to buy
+                buy_amount = ((cash * INVEST_PERCENTAGE)/100)
+                shares_to_buy = buy_amount / df["Close"][i]  # calculate number of shares to buy
                 shares += shares_to_buy  # add shares to portfolio
-                cash = 0
+                cash -= buy_amount
                 #dates_list.append(df["Date"][i])
             elif df["Sell"][i] == True:
                 cash_from_sale = shares * df["Close"][i]  # calculate cash from selling shares
@@ -149,9 +154,11 @@ def handle_stock(stock_list):
         print("<br>End Date: " + sys.argv[3])
         print("<br><br>Profit: {:.2f} %<br>".format(profit))
 
+        print("Cash Investment Precentage on Buy Signal: {}%<br>".format(INVEST_PERCENTAGE))
+
         first_investment_shares = first_investment / df["Close"][0]
         passive_investment_profit = first_investment_shares * df["Close"][-1] - first_investment
-        print("Passive Investment Profit: {:.2f} %<br>".format(passive_investment_profit))
+        print("Passive Investment Profit: {:.2f} % <br>".format(passive_investment_profit))
         
         print("Success Rate: {:.2f} %<br><br><br>".format((success_rate/num_of_sells) * 100))
             
@@ -165,7 +172,8 @@ def main():
         stock_list.append(sys.argv[1])
         
         if (len(sys.argv) >= 5):
-            stock_list.append(sys.argv[4])
+            if (sys.argv[4] != "-"):
+                stock_list.append(sys.argv[4])
 
         fig = handle_stock(stock_list)
 
