@@ -118,11 +118,17 @@ def handle_stock(stock_list):
         success_rate = 0
         num_of_sells = 0
 
+
         cash = first_investment  # start with first_investment in cash
         shares = 0
+
+        static_cash = cash - ((cash * INVEST_PERCENTAGE)/100)
+        cash -= static_cash
+        static_shares = static_cash / stock_data["Close"][0]
+
+        buy_amount = ((cash * INVEST_PERCENTAGE)/100)
         for i in range(len(df)):
             if df["Buy"][i] == True:
-                buy_amount = ((cash * INVEST_PERCENTAGE)/100)
                 shares_to_buy = buy_amount / df["Close"][i]  # calculate number of shares to buy
                 shares += shares_to_buy  # add shares to portfolio
                 cash -= buy_amount
@@ -140,6 +146,10 @@ def handle_stock(stock_list):
                         success_rate+=1
                 
                 last_sell_cash = cash_from_sale
+
+
+        cash += (static_shares * stock_data["Close"][-1])
+
 
         # Calculate final investment value
         final_investment = cash + shares * df["Close"][-1]
