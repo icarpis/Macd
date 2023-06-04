@@ -34,11 +34,32 @@ def print_signals(df):
         pass
 
 
+# Calculate MACD indicator
+def MACD(df, a, b, c):
+    df["EMA_12"] = df["Close"].ewm(span=a, min_periods=a).mean()
+    df["EMA_26"] = df["Close"].ewm(span=b, min_periods=b).mean()
+    df["MACD"] = df["EMA_12"] - df["EMA_26"]
+    df["Signal"] = df["MACD"].ewm(span=c, min_periods=c).mean()
+    df["Histogram"] = df["MACD"] - df["Signal"]
 
-def main():
-    try:
-        # Load stock data
-        STOCK_NAME = sys.argv[1]
+    # Buy and sell signals
+    df["Buy"] = (df["MACD"] > df["Signal"]) & (df["MACD"].shift() < df["Signal"].shift())
+    df["Sell"] = (df["MACD"] < df["Signal"]) & (df["MACD"].shift() > df["Signal"].shift())
+
+
+    exp1 = df['Close'].ewm(span=12, adjust=False).mean()
+    exp2 = df['Close'].ewm(span=26, adjust=False).mean()
+    macd = exp1 - exp2
+    signal = macd.ewm(span=9, adjust=False).mean()
+    hist = macd - signal
+
+    return (df, macd, signal, hist)
+
+def handle_stock(stock_list):
+    # Create figure
+    fig = go.Figure()
+    
+    for STOCK_NAME in stock_list:
         print("Stock Name: " + STOCK_NAME + "<br>")
         stock_ticker = STOCK_NAME
         
@@ -57,59 +78,34 @@ def main():
         end_date = tz.localize(dt(END_YEAR,END_MONTH, END_DAY) + datetime.timedelta(days=1))
         stock_data = yf.download(stock_ticker, start=start_date, end=end_date)
 
-        # Calculate MACD indicator
-        def MACD(df, a, b, c):
-            df["EMA_12"] = df["Close"].ewm(span=a, min_periods=a).mean()
-            df["EMA_26"] = df["Close"].ewm(span=b, min_periods=b).mean()
-            df["MACD"] = df["EMA_12"] - df["EMA_26"]
-            df["Signal"] = df["MACD"].ewm(span=c, min_periods=c).mean()
-            df["Histogram"] = df["MACD"] - df["Signal"]
-            return df
-
-        df = MACD(stock_data, 12, 26, 9)
-
-
-        # Buy and sell signals
-        df["Buy"] = (df["MACD"] > df["Signal"]) & (df["MACD"].shift() < df["Signal"].shift())
-        df["Sell"] = (df["MACD"] < df["Signal"]) & (df["MACD"].shift() > df["Signal"].shift())
-
-
-        exp1 = df['Close'].ewm(span=12, adjust=False).mean()
-        exp2 = df['Close'].ewm(span=26, adjust=False).mean()
-        macd = exp1 - exp2
-        signal = macd.ewm(span=9, adjust=False).mean()
-        hist = macd - signal
-
-        # Create figure
-        fig = go.Figure()
+        (df, macd, signal, hist) = MACD(stock_data, 12, 26, 9)
 
         # Add trace for stock price
-        fig.add_trace(go.Scatter(x=df.index, y=df["Close"], name="Stock Price"))
+        fig.add_trace(go.Scatter(x=df.index, y=df["Close"], name=STOCK_NAME + " Stock Price"))
 
         # Add trace for MACD
-        fig.add_trace(go.Scatter(x=df.index, y=macd, name="MACD"))
+        fig.add_trace(go.Scatter(x=df.index, y=macd, name=STOCK_NAME + " MACD"))
 
         # Add trace for signal
-        fig.add_trace(go.Scatter(x=df.index, y=signal, name="Signal"))
+        fig.add_trace(go.Scatter(x=df.index, y=signal, name=STOCK_NAME + " Signal"))
 
         # Add trace for histogram
-        fig.add_trace(go.Bar(x=df.index, y=hist, name="Histogram"))
+        fig.add_trace(go.Bar(x=df.index, y=hist, name=STOCK_NAME + " Histogram"))
 
         # Add buy and sell signals
         buy_signals = df[(macd > signal) & (macd.shift() < signal.shift())]
         sell_signals = df[(macd < signal) & (macd.shift() > signal.shift())]
 
-        fig.add_trace(go.Scatter(x=buy_signals.index, y=buy_signals["Close"], mode="markers", marker=dict(symbol="triangle-up", size=10, color="green"), name="Buy"))
-        fig.add_trace(go.Scatter(x=sell_signals.index, y=sell_signals["Close"], mode="markers", marker=dict(symbol="triangle-down", size=10, color="red"), name="Sell"))
+        fig.add_trace(go.Scatter(x=buy_signals.index, y=buy_signals["Close"], mode="markers", marker=dict(symbol="triangle-up", size=10, color="green"), name=STOCK_NAME + " Buy"))
+        fig.add_trace(go.Scatter(x=sell_signals.index, y=sell_signals["Close"], mode="markers", marker=dict(symbol="triangle-down", size=10, color="red"), name=STOCK_NAME + " Sell"))
 
         print_signals(df)
 
         df["Date"] = df.index
 
-        first_investment = 100
-
         dates_list = []
         cash_list = []
+        first_investment = 100
         cash_list.append(first_investment)
         dates_list.append(df["Date"][0])
 
@@ -146,8 +142,10 @@ def main():
         # Calculate profit
         profit = final_investment - first_investment
 
+
+        print("<br><br><br>Stock Name: " + STOCK_NAME + "<br>")
         # Print final investment value and profit
-        print("<br><br><br>Start Date: " + sys.argv[2])
+        print("Start Date: " + sys.argv[2])
         print("<br>End Date: " + sys.argv[3])
         print("<br><br>Profit: {:.2f} %<br>".format(profit))
 
@@ -155,10 +153,22 @@ def main():
         passive_investment_profit = first_investment_shares * df["Close"][-1] - first_investment
         print("Passive Investment Profit: {:.2f} %<br>".format(passive_investment_profit))
         
-        print("Success Rate: {:.2f} %<br>".format((success_rate/num_of_sells) * 100))
+        print("Success Rate: {:.2f} %<br><br><br>".format((success_rate/num_of_sells) * 100))
+            
+        fig.add_trace(go.Scatter(x=dates_list, y=cash_list, name=STOCK_NAME + " Cash"))
+    return fig
+
+def main():
+    try:
+        stock_list = []
+        # Load stock data
+        stock_list.append(sys.argv[1])
         
-        fig.add_trace(go.Scatter(x=dates_list, y=cash_list, name="Cash"))
-        
+        if (len(sys.argv) >= 5):
+            stock_list.append(sys.argv[4])
+
+        fig = handle_stock(stock_list)
+
         print('<br><br>' + fig.to_html(full_html=False, include_plotlyjs='cdn'))
 
     except Exception as er:
