@@ -22,14 +22,28 @@ def print_signals(buy_signals, sell_signals):
         # print buy signals
         idx = 1
         print("<br><br>Signals:<br>")
+        last_buy = 0
         for index, row in signals.iterrows():
+            txt = ""
             if (row["Signal Type"] == "Buy"):
+                last_buy = row['Close']
                 print(str(idx) + ". Buy Signal: ")
             else:
                 print(str(idx) + ". Sell Signal: ")
-
+                if (last_buy != 0):
+                    diff = float(row['Close']) - float(last_buy)
+                    color = "red"
+                    if (diff > 0):
+                        color = "green"
+                    
+                    txt = " ; <p style=\"display:inline;color:" + color + ";\">Diff: " + "{:.2f}".format(diff) + "</p><br>"
+                else:
+                    txt = "<br>"
+                
+            print("{} - {:.2f}".format(row['Date'].strftime('%Y-%m-%d'), row['Close']))
+            print(txt)
+                
             idx+=1
-            print("{} - {:.2f}<br>".format(row['Date'].strftime('%Y-%m-%d'), row['Close']))
     except:
         pass
 
@@ -123,7 +137,6 @@ def handle_stock(stock_list):
         shares = 0
 
         static_cash = cash - ((cash * INVEST_PERCENTAGE)/100)
-        cash -= static_cash
         static_shares = static_cash / stock_data["Close"][0]
 
         buy_amount = ((cash * INVEST_PERCENTAGE)/100)
@@ -148,7 +161,10 @@ def handle_stock(stock_list):
                 last_sell_cash = cash_from_sale
 
 
-        cash += (static_shares * stock_data["Close"][-1])
+        if (static_cash != 0):
+            cash -= static_cash
+            cash += (static_shares * stock_data["Close"][-1])
+            cash_list.append(cash)
 
 
         # Calculate final investment value
