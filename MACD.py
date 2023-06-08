@@ -30,6 +30,7 @@ def print_signals(buy_signals, sell_signals):
                 print(str(idx) + ". Buy Signal: ")
             else:
                 print(str(idx) + ". Sell Signal: ")
+                idx+=1
                 if (last_buy != 0):
                     diff = float(row['Close']) - float(last_buy)
                     color = "red"
@@ -42,8 +43,6 @@ def print_signals(buy_signals, sell_signals):
                 
             print("{} - {:.2f}".format(row['Date'].strftime('%Y-%m-%d'), row['Close']))
             print(txt)
-                
-            idx+=1
     except:
         pass
 
@@ -77,12 +76,12 @@ def handle_stock(stock_list):
         print("Stock Name: " + STOCK_NAME + "<br>")
         stock_ticker = STOCK_NAME
         
-        START_DATE = sys.argv[2].split("_")
+        START_DATE = sys.argv[2].split("-")
         START_YEAR = int(START_DATE[0])
         START_MONTH = int(START_DATE[1])
         START_DAY = int(START_DATE[2])
         
-        END_DATE = sys.argv[3].split("_")
+        END_DATE = sys.argv[3].split("-")
         END_YEAR = int(END_DATE[0])
         END_MONTH = int(END_DATE[1])
         END_DAY = int(END_DATE[2])
@@ -196,11 +195,11 @@ def main():
     try:
         stock_list = []
         # Load stock data
-        stock_list.append(sys.argv[1])
+        stock_list.append(sys.argv[1].upper())
         
         if (len(sys.argv) >= 5):
             if (sys.argv[4] != "-"):
-                stock_list.append(sys.argv[4])
+                stock_list.append(sys.argv[4].upper())
 
         fig = handle_stock(stock_list)
 
