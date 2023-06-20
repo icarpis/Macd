@@ -10,7 +10,7 @@ import datetime
 
 
 
-def print_signals(buy_signals, sell_signals):
+def print_signals(buy_signals, sell_signals, local_max_list):
     try:
         buy_signals = buy_signals.reset_index()[["Date", "Close"]]
         sell_signals = sell_signals.reset_index()[["Date", "Close"]]
@@ -23,13 +23,18 @@ def print_signals(buy_signals, sell_signals):
         idx = 1
         print("<br><br>Signals:<br>")
         last_buy = 0
+        i = 0
         for index, row in signals.iterrows():
             txt = ""
             if (row["Signal Type"] == "Buy"):
                 last_buy = row['Close']
                 print(str(idx) + ". Buy Signal: ")
             else:
-                print(str(idx) + ". Sell Signal: ")
+                if (last_buy == 0):
+                    print(str(idx) + ". Sell Signal: ")
+                else:
+                    print(" ; Sell Signal: ")
+                    
                 idx+=1
                 if (last_buy != 0):
                     diff = float(row['Close']) - float(last_buy)
@@ -37,7 +42,8 @@ def print_signals(buy_signals, sell_signals):
                     if (diff > 0):
                         color = "green"
                     
-                    txt = " ; <p style=\"display:inline;color:" + color + ";\">Diff: " + "{:.2f}".format(diff) + "</p><br>"
+                    txt = " ; local_max: " + "{:.2f}".format(local_max_list[i]) + " ; <p style=\"display:inline;color:" + color + ";\">Diff: " + "{:.2f}".format(diff) + "</p><br>"
+                    i+=1
                 else:
                     txt = "<br>"
                 
@@ -116,8 +122,6 @@ def handle_stock(stock_list):
         fig.add_trace(go.Scatter(x=buy_signals.index, y=buy_signals["Close"], mode="markers", marker=dict(symbol="triangle-up", size=10, color="green"), name=STOCK_NAME + " Buy"))
         fig.add_trace(go.Scatter(x=sell_signals.index, y=sell_signals["Close"], mode="markers", marker=dict(symbol="triangle-down", size=10, color="red"), name=STOCK_NAME + " Sell"))
 
-        print_signals(buy_signals, sell_signals)
-
         df["Date"] = df.index
 
         dates_list = []
@@ -139,18 +143,24 @@ def handle_stock(stock_list):
         static_shares = static_cash / stock_data["Close"][0]
 
         buy_amount = ((cash * INVEST_PERCENTAGE)/100)
+        local_max = 0
+        local_max_list = []
         for i in range(len(df)):
+            if (df["Close"][i] > local_max):
+                local_max = df["Close"][i]
+            
             if df["Buy"][i] == True:
                 shares_to_buy = buy_amount / df["Close"][i]  # calculate number of shares to buy
                 shares += shares_to_buy  # add shares to portfolio
                 cash -= buy_amount
-                #dates_list.append(df["Date"][i])
             elif df["Sell"][i] == True:
                 cash_from_sale = shares * df["Close"][i]  # calculate cash from selling shares
                 shares = 0
                 cash += cash_from_sale
                 cash_list.append(cash)
                 dates_list.append(df["Date"][i])
+                local_max_list.append(local_max)
+                local_max = 0
                 
                 num_of_sells+=1
                 if (last_sell_cash != None):
@@ -165,6 +175,8 @@ def handle_stock(stock_list):
             cash += (static_shares * stock_data["Close"][-1])
             cash_list.append(cash)
 
+
+        print_signals(buy_signals, sell_signals, local_max_list)
 
         # Calculate final investment value
         final_investment = cash + shares * df["Close"][-1]
