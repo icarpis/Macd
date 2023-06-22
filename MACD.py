@@ -38,11 +38,16 @@ def print_signals(buy_signals, sell_signals, local_max_list):
                 idx+=1
                 if (last_buy != 0):
                     diff = float(row['Close']) - float(last_buy)
+                    diff_perc = "{:.4f}".format(100*((diff) / float(last_buy))) + " %)"
+
                     color = "red"
                     if (diff > 0):
                         color = "green"
+                        diff_perc = " (+" + diff_perc
+                    else:
+                        diff_perc = " (" + diff_perc
                     
-                    txt = " ; local_max: " + "{:.2f}".format(local_max_list[i]) + " ; <p style=\"display:inline;color:" + color + ";\">Diff: " + "{:.2f}".format(diff) + "</p><br>"
+                    txt = " ; local_max: " + "{:.2f}".format(local_max_list[i]) + " ; <p style=\"display:inline;color:" + color + ";\">Diff: " + "{:.2f}".format(diff) + diff_perc + "</p><br>"
                     i+=1
                 else:
                     txt = "<br>"
