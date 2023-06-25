@@ -51,7 +51,7 @@ def print_signals(buy_signals, sell_signals, local_max_list):
                     i+=1
                 else:
                     txt = "<br>"
-                
+
             print("{} - {:.2f}".format(row['Date'].strftime('%Y-%m-%d'), row['Close']))
             print(txt)
     except:
@@ -158,6 +158,7 @@ def handle_stock(stock_list):
                 shares_to_buy = buy_amount / df["Close"][i]  # calculate number of shares to buy
                 shares += shares_to_buy  # add shares to portfolio
                 cash -= buy_amount
+                local_max = df["Close"][i]
             elif df["Sell"][i] == True:
                 cash_from_sale = shares * df["Close"][i]  # calculate cash from selling shares
                 shares = 0
