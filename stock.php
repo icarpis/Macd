@@ -22,10 +22,16 @@ $start_date = $_GET["start_date"];
 $end_date = $_GET["end_date"];
 $stock_name_val2 = $_GET["stock_name2"];
 $buy = $_GET["buy"];
+$moving_stop_loss = $_GET["moving_stop_loss"];
 
 if ($stock_name_val2 == "")
 {
 	$stock_name_val2 = "-";
+}
+
+if ($moving_stop_loss == "")
+{
+	$moving_stop_loss = "0";
 }
 
 if ($buy == "")
@@ -38,14 +44,14 @@ clearstatcache();
 
 if (isset($_GET["debug"])) {
 	#phpinfo();
-	file_put_contents($debug_script_name, "");
-	file_put_contents($debug_script_name, fopen("https://raw.githubusercontent.com/gandelmanb/MACD/master/MACD_DEBUG.py", 'r'));
-    $output = shell_exec("py ".$debug_script_name . " " . $stock_name_val . " " . $start_date . " " . $end_date . " " . $stock_name_val2 . " " . $buy);
+	#file_put_contents($debug_script_name, "");
+	#file_put_contents($debug_script_name, fopen("https://raw.githubusercontent.com/gandelmanb/MACD/master/MACD_DEBUG.py", 'r'));
+    $output = shell_exec("py ".$debug_script_name . " " . $stock_name_val . " " . $start_date . " " . $end_date . " " . $stock_name_val2 . " " . $buy . " " . $moving_stop_loss);
     echo $output;
 } else {
 	file_put_contents($script_name, "");
 	file_put_contents($script_name, fopen("https://raw.githubusercontent.com/icarpis/MACD/master/MACD.py", 'r'));
-    $output = shell_exec("py ".$script_name . " " . $stock_name_val . " " . $start_date . " " . $end_date . " " . $stock_name_val2 . " " . $buy);
+    $output = shell_exec("py ".$script_name . " " . $stock_name_val . " " . $start_date . " " . $end_date . " " . $stock_name_val2 . " " . $buy . " " . $moving_stop_loss);
     echo $output;
 }
 
