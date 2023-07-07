@@ -104,9 +104,13 @@ def handle_stock(stock_list):
         tz = pytz.timezone("Israel")
         start_date = tz.localize(dt(START_YEAR,START_MONTH, START_DAY))
         end_date = tz.localize(dt(END_YEAR,END_MONTH, END_DAY) + datetime.timedelta(days=1))
-        stock_data = yf.download(stock_ticker, start=start_date, end=end_date)
+        from dateutil.relativedelta import relativedelta
+        stock_data = yf.download(stock_ticker, start=start_date - relativedelta(years=1), end=end_date)
 
         (df, macd, signal, hist) = MACD(stock_data, 12, 26, 9)
+
+        df["ActualDate"] = df.index
+        df = df.loc[(df['ActualDate'] >= np.datetime64(start_date)) & (df['ActualDate'] <= np.datetime64(end_date))]
 
         # Add trace for stock price
         fig.add_trace(go.Scatter(x=df.index, y=df["Close"], name=STOCK_NAME + " Stock Price"))
@@ -127,13 +131,12 @@ def handle_stock(stock_list):
         fig.add_trace(go.Scatter(x=buy_signals.index, y=buy_signals["Close"], mode="markers", marker=dict(symbol="triangle-up", size=10, color="green"), name=STOCK_NAME + " Buy"))
         fig.add_trace(go.Scatter(x=sell_signals.index, y=sell_signals["Close"], mode="markers", marker=dict(symbol="triangle-down", size=10, color="red"), name=STOCK_NAME + " Sell"))
 
-        df["Date"] = df.index
 
         dates_list = []
         cash_list = []
         first_investment = 100
         cash_list.append(first_investment)
-        dates_list.append(df["Date"][0])
+        dates_list.append(df["ActualDate"][0])
 
 
         last_sell_cash = None
@@ -187,7 +190,7 @@ def handle_stock(stock_list):
                 after_moving_stop_loss = False
             
                 cash_list.append(cash)
-                dates_list.append(df["Date"][i])
+                dates_list.append(df["ActualDate"][i])
                 
                 local_max_list.append(local_max)
                 local_max = 0
@@ -207,11 +210,11 @@ def handle_stock(stock_list):
                 
             elif (after_buy and (local_max != 0) and (MOVING_STOP_LOSS != 0) and ((((local_max - df["Close"][i])/local_max) * 100) >= MOVING_STOP_LOSS)):
                 moving_stop_loss_list.append(df["Close"][i])
-                moving_stop_loss_dates.append(df["Date"][i])
+                moving_stop_loss_dates.append(df["ActualDate"][i])
                 #sell_signals["Close"][sell_idx] = df["Close"][i]
                 after_buy = False
                 
-                #print(str(df["Date"][i]) + "  " + str(df["Close"][i]))
+                #print(str(df["ActualDate"][i]) + "  " + str(df["Close"][i]))
                 
                 cash_from_sale = stop_loss_buy_shares * df["Close"][i]  # calculate cash from selling shares
                 
