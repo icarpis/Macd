@@ -47,14 +47,12 @@ if (isset($_GET["debug"])) {
 	#file_put_contents($debug_script_name, "");
 	#file_put_contents($debug_script_name, fopen("https://raw.githubusercontent.com/gandelmanb/MACD/master/MACD_DEBUG.py", 'r'));
     $output = shell_exec("py ".$debug_script_name . " " . $stock_name_val . " " . $start_date . " " . $end_date . " " . $stock_name_val2 . " " . $buy . " " . $moving_stop_loss);
-	echo "<div ", file_get_contents('./index_debug.html', true), " </div>", "<br><br><div ",$output, " </div>";
+	echo $output;
 } else {
 	file_put_contents($script_name, "");
 	file_put_contents($script_name, fopen("https://raw.githubusercontent.com/icarpis/MACD/master/MACD.py", 'r'));
     $output = shell_exec("py ".$script_name . " " . $stock_name_val . " " . $start_date . " " . $end_date . " " . $stock_name_val2 . " " . $buy . " " . $moving_stop_loss);
-	echo "<div ", file_get_contents('./index.html', true), " </div>", "<br><br><div ",$output, " </div>";
+	echo $output;
 }
-
-
 
 ?>

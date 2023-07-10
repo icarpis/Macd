@@ -5,43 +5,75 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
   <title>MACD</title>
+  <style>
+	#content, html, body {
+		height: 99%;
+	}
+	#down {
+		float: left;
+		width: 100%;
+		height: 60%;
+		overflow-y: scroll;
+	}
+	#up {
+		float: left;
+		width: 100%;
+		height: 40%;
+		overflow-y: scroll;
+		background: #ffeeee;
+	}
+	hr { 
+  display: block;
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+  margin-left: auto;
+  margin-right: auto;
+  border-style: inset;
+  border-width: 1px;
+} 
+  </style>
 </head>
 
 <body>
-	<center>
-	  <h1>MACD</h1>
+	<div id="content">
+		<div id="up">
+			<center>
+				<h1>MACD</h1>
+				<label for="fname" style="height:50px;width:250px;font-size: 2rem">Stock1</label><br>
+				<input type="text" id="stock" name="stock_name" style="text-transform:uppercase;height:50px;width:250px;font-size: 2rem"><br><br><br>
 
-	  <form action="/stock.php" onsubmit="button_busy()">
-		<label for="fname" style="height:50px;width:250px;font-size: 2rem">Stock1</label><br>
-		<input type="text" id="stock" name="stock_name" style="text-transform:uppercase;height:50px;width:250px;font-size: 2rem"><br><br><br>
-		
-		<label for="fname" style="height:50px;width:250px;font-size: 2rem">Stock2</label><br>
-		<input type="text" id="stock2" name="stock_name2" style="text-transform:uppercase;height:50px;width:250px;font-size: 2rem"><br><br><br>
+				<label for="fname" style="height:50px;width:250px;font-size: 2rem">Stock2</label><br>
+				<input type="text" id="stock2" name="stock_name2" style="text-transform:uppercase;height:50px;width:250px;font-size: 2rem"><br><br><br>
 
-		<label for="fname" style="height:50px;width:250px;font-size: 2rem">Buy (%)</label><br>
-		<input type="text" id="buy" name="buy" value="100" style="height:50px;width:150px;font-size: 2rem"><br><br><br>
-		
-		<label for="start_date" style="height:50px;width:250px;font-size: 2rem">Start date:</label><br>
-		<input type="date" id="start_date" name="start_date"
-		   value="2018-01-01"
-		   min="1900-01-01" max="2100-01-01" style="height:50px;width:250px;font-size: 2rem"><br><br><br>
-	  
-		<label for="end_date" style="height:50px;width:250px;font-size: 2rem">End date:</label><br>
-		<input type="date" id="end_date" name="end_date"
-		   value="2018-01-01"
-		   min="1900-01-01" max="2100-01-01" style="height:50px;width:250px;font-size: 2rem"><br><br><br>
-		
-		<label for="fname" style="height:50px;width:250px;font-size: 2rem">Moving Stop-Loss (%)</label><br>
-        <input type="checkbox" id="moving_stop_loss" style="height:35px;width:35px;display: inline-block;"/>
-		&nbsp;
-		&nbsp;
-		<input type="text" id="moving_stop_loss_txt" name="moving_stop_loss" value="5" style="height:50px;width:150px;font-size: 2rem;" disabled>
+				<label for="fname" style="height:50px;width:250px;font-size: 2rem">Buy (%)</label><br>
+				<input type="text" id="buy" name="buy" value="100" style="height:50px;width:150px;font-size: 2rem"><br><br><br>
 
-		<br><br><br><input id="button" type="submit" value="Submit" style="height:50px;width:250px;font-size: 2rem"><br>
-	  </form>
-	</center>
-	
+				<label for="start_date" style="height:50px;width:250px;font-size: 2rem">Start date:</label><br>
+				<input type="date" id="start_date" name="start_date"
+				   value="2018-01-01"
+				   min="1900-01-01" max="2100-01-01" style="height:50px;width:250px;font-size: 2rem"><br><br><br>
+
+				<label for="end_date" style="height:50px;width:250px;font-size: 2rem">End date:</label><br>
+				<input type="date" id="end_date" name="end_date"
+				   value="2018-01-01"
+				   min="1900-01-01" max="2100-01-01" style="height:50px;width:250px;font-size: 2rem"><br><br><br>
+
+				<label for="fname" style="height:50px;width:250px;font-size: 2rem">Moving Stop-Loss (%)</label><br>
+				<input type="checkbox" id="moving_stop_loss" style="height:35px;width:35px;display: inline-block;"/>
+				&nbsp;
+				&nbsp;
+				<input type="text" id="moving_stop_loss_txt" name="moving_stop_loss" value="5" style="height:40px;width:150px;font-size: 2rem;" disabled>
+
+				<br><br><br><button id="button" style="height:50px;width:250px;font-size: 2rem" onclick="button_busy()">Submit</button><br><br>
+			</center>
+		</div>
+		
+		<hr>
+		
+		<div id="down"></div>	
+	</div>
 </body>
 
 <script src="moment.js"></script>
