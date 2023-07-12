@@ -34,16 +34,3 @@ function html_load()
 {
 	
 }
-
-const moving_stop_loss_Checkbox = document.getElementById("moving_stop_loss");
-const moving_stop_loss_Text = document.getElementById("moving_stop_loss_txt");
-
-moving_stop_loss_Checkbox.addEventListener("change", () => {
-  if (moving_stop_loss_Checkbox.checked)
-  {
-    moving_stop_loss_Text.disabled  = false;
-  } else
-  {
-    moving_stop_loss_Text.disabled  = true;
-  }
-});
