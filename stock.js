@@ -19,8 +19,7 @@ function button_busy()
 			"buy": $('#buy').val(),
 			"start_date": $('#start_date').val(),
 			"end_date": $('#end_date').val(),
-			"moving_stop_loss": $('#moving_stop_loss_txt').val(),
-			"debug": "1"
+			"moving_stop_loss": $('#moving_stop_loss_txt').val()
         }
 		}).done(function(result) {
 			$('#down').html(result);
