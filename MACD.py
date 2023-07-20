@@ -1,11 +1,6 @@
-import pandas as pd
-import yfinance as yf
-import numpy as np
-import pytz
 from datetime import datetime as dt
 import sys
 import io
-import plotly.graph_objs as go
 import datetime
 
 
@@ -16,6 +11,7 @@ def print_signals(buy_signals, sell_signals, local_max_list):
     buy_signals["Signal Type"] = "Buy"
     sell_signals["Signal Type"] = "Sell"
 
+    import pandas as pd
     signals = pd.concat([buy_signals, sell_signals]).sort_values(by="Date").reset_index(drop=True)
 
     # print buy signals
@@ -76,7 +72,10 @@ def MACD(df, a, b, c):
 
     return (df, macd, signal, hist)
 
+
 def handle_stock(stock_list):
+    import plotly.graph_objs as go
+
     # Create figure
     fig = go.Figure()
     
@@ -101,15 +100,18 @@ def handle_stock(stock_list):
         
         MOVING_STOP_LOSS = int(sys.argv[6])
         
+        import pytz
         tz = pytz.timezone("Israel")
         start_date = tz.localize(dt(START_YEAR,START_MONTH, START_DAY))
         end_date = tz.localize(dt(END_YEAR,END_MONTH, END_DAY) + datetime.timedelta(days=1))
         from dateutil.relativedelta import relativedelta
+        import yfinance as yf
         stock_data = yf.download(stock_ticker, start=start_date - relativedelta(years=1), end=end_date)
 
         (df, macd, signal, hist) = MACD(stock_data, 12, 26, 9)
 
         df["ActualDate"] = df.index
+        import numpy as np
         df = df.loc[(df['ActualDate'] >= np.datetime64(start_date)) & (df['ActualDate'] <= np.datetime64(end_date))]
 
         # Add trace for stock price
@@ -131,138 +133,41 @@ def handle_stock(stock_list):
         fig.add_trace(go.Scatter(x=buy_signals.index, y=buy_signals["Close"], mode="markers", marker=dict(symbol="triangle-up", size=10, color="green"), name=STOCK_NAME + " Buy"))
         fig.add_trace(go.Scatter(x=sell_signals.index, y=sell_signals["Close"], mode="markers", marker=dict(symbol="triangle-down", size=10, color="red"), name=STOCK_NAME + " Sell"))
 
+        import public.calc_cash
+        start_cash_balance = 100
+        (end_cash_balance, stop_loss_buy_cash, stop_loss_buy_shares, moving_stop_loss_list, moving_stop_loss_dates, success_rate, cash_list, dates_list, local_max_list) = public.calc_cash.calc_cash_balance(INVEST_PERCENTAGE, start_cash_balance, df, stock_data["Close"][0], stock_data["Close"][-1], MOVING_STOP_LOSS)
 
-        dates_list = []
-        cash_list = []
-        first_investment = 100
-        cash_list.append(first_investment)
-        dates_list.append(df["ActualDate"][0])
-
-
-        last_sell_cash = None
-        success_rate = 0
-        num_of_sells = 0
-
-
-        cash = first_investment  # start with first_investment in cash
-        shares = 0
         
-        stop_loss_buy_cash = first_investment  # start with first_investment in cash
-        stop_loss_buy_shares = 0
-
-        static_cash = cash - ((cash * INVEST_PERCENTAGE)/100)
-        static_shares = static_cash / stock_data["Close"][0]
-
-        buy_amount = ((cash * INVEST_PERCENTAGE)/100)
-        local_max = 0
-        local_max_list = []
-        after_buy = False
-        moving_stop_loss_list = []
-        moving_stop_loss_dates = []
-        sell_idx = 0
-        after_moving_stop_loss = False
-        for i in range(len(df)):
-            if (df["Close"][i] > local_max):
-                local_max = df["Close"][i]
-
-            if df["Buy"][i] == True:
-                shares_to_buy = buy_amount / df["Close"][i]  # calculate number of shares to buy
-                
-                shares += shares_to_buy  # add shares to portfolio
-                cash -= buy_amount
-                
-                stop_loss_buy_shares += shares_to_buy
-                stop_loss_buy_cash -= buy_amount
-                
-                
-                local_max = df["Close"][i]
-                after_buy = True
-            elif (df["Sell"][i] == True):
-                cash_from_sale = shares * df["Close"][i]  # calculate cash from selling shares
-                
-                shares = 0
-                cash += cash_from_sale
-                
-                if (not after_moving_stop_loss):
-                    stop_loss_buy_shares = 0
-                    stop_loss_buy_cash += cash_from_sale
-                    
-                after_moving_stop_loss = False
-            
-                cash_list.append(cash)
-                dates_list.append(df["ActualDate"][i])
-                
-                local_max_list.append(local_max)
-                local_max = 0
-                if (not after_buy) and (sell_idx == 0):
-                    sell_idx += 2
-                else:
-                    sell_idx += 1
-                
-                after_buy = False
-                
-                num_of_sells+=1
-                if (last_sell_cash != None):
-                    if (cash_from_sale > last_sell_cash):
-                        success_rate+=1
-
-                last_sell_cash = cash_from_sale
-                
-            elif (after_buy and (local_max != 0) and (MOVING_STOP_LOSS != 0) and ((((local_max - df["Close"][i])/local_max) * 100) >= MOVING_STOP_LOSS)):
-                moving_stop_loss_list.append(df["Close"][i])
-                moving_stop_loss_dates.append(df["ActualDate"][i])
-                #sell_signals["Close"][sell_idx] = df["Close"][i]
-                after_buy = False
-                
-                #print(str(df["ActualDate"][i]) + "  " + str(df["Close"][i]))
-                
-                cash_from_sale = stop_loss_buy_shares * df["Close"][i]  # calculate cash from selling shares
-                
-                stop_loss_buy_shares = 0
-                stop_loss_buy_cash += cash_from_sale
-               
-                after_moving_stop_loss = True
-
-
         fig.add_trace(go.Scatter(x=moving_stop_loss_dates, y=moving_stop_loss_list, mode="markers", marker=dict(symbol="triangle-down", size=10, color="brown"), name=STOCK_NAME + " Moving Stop-Loss"))
 
-        if (static_cash != 0):
-            cash -= static_cash
-            cash += (static_shares * stock_data["Close"][-1])
-            cash_list.append(cash)
+        # Calculate MACD profit
+        macd_profit = end_cash_balance - start_cash_balance
+
+        stop_loss_buy_end_cash_balance = stop_loss_buy_cash + stop_loss_buy_shares * df["Close"][-1]
+
+        stop_loss_buy_profit = stop_loss_buy_end_cash_balance - start_cash_balance
 
 
         print_signals(buy_signals, sell_signals, local_max_list)
-
-        # Calculate final investment value
-        final_investment = cash + shares * df["Close"][-1]
-
-        # Calculate profit
-        profit = final_investment - first_investment
-
-        stop_loss_buy_final_investment = stop_loss_buy_cash + stop_loss_buy_shares * df["Close"][-1]
         
-        stop_loss_buy_profit = stop_loss_buy_final_investment - first_investment
-
+        
 
         print("<br><br><br>Stock Name: " + STOCK_NAME + "<br>")
-        # Print final investment value and profit
         print("Start Date: " + sys.argv[2])
         print("<br>End Date: " + sys.argv[3])
         
         print("<br><br>Cash Investment Precentage on Buy Signal: {}%<br>".format(INVEST_PERCENTAGE))
         
-        print("<br>MACD Profit: {:.2f} %<br>".format(profit))
+        print("<br>MACD Profit: {:.2f} %<br>".format(macd_profit))
         
         if (MOVING_STOP_LOSS != 0):
             print("<br>MACD Stop-Loss Profit: {:.2f} %<br>".format(stop_loss_buy_profit))
 
-        first_investment_shares = first_investment / df["Close"][0]
-        passive_investment_profit = first_investment_shares * df["Close"][-1] - first_investment
+        start_cash_balance_shares = start_cash_balance / df["Close"][0]
+        passive_investment_profit = start_cash_balance_shares * df["Close"][-1] - start_cash_balance
         print("Passive Investment Profit: {:.2f} % <br>".format(passive_investment_profit))
         
-        if (num_of_sells != 0):
-            print("Success Rate: {:.2f} %<br><br><br>".format((success_rate/num_of_sells) * 100))
+        print("Success Rate: {:.2f} %<br><br><br>".format((success_rate) * 100))
             
         fig.add_trace(go.Scatter(x=dates_list, y=cash_list, name=STOCK_NAME + " Cash"))
     return fig
