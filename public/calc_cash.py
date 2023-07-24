@@ -1,6 +1,9 @@
 
 
-def calc_cash_balance(INVEST_PERCENTAGE, start_cash_balance, df, begin_stock_val, end_stock_val, MOVING_STOP_LOSS):
+def calc_cash_balance(INVEST_PERCENTAGE, start_cash_balance, df, MOVING_STOP_LOSS, dfSize):
+    begin_stock_val = df["Close"][0]
+    end_stock_val = df["Close"][-1]
+    
     dates_list = []
     cash_list = []
     
@@ -27,7 +30,7 @@ def calc_cash_balance(INVEST_PERCENTAGE, start_cash_balance, df, begin_stock_val
     last_sell_cash = None
     num_of_success = 0
     num_of_sells = 0
-    for i in range(len(df)):
+    for i in range(dfSize):
         if (df["Close"][i] > local_max):
             local_max = df["Close"][i]
 
@@ -96,10 +99,17 @@ def calc_cash_balance(INVEST_PERCENTAGE, start_cash_balance, df, begin_stock_val
         cash_list.append(cash)
 
     # Calculate final cash balance
-    end_cash_balance = cash + shares * df["Close"][-1]
+    end_cash_balance = cash + shares * end_stock_val
     
     success_rate = 0
     if (num_of_sells != 0):
         success_rate = num_of_success/num_of_sells
 
-    return (end_cash_balance, stop_loss_buy_cash, stop_loss_buy_shares, moving_stop_loss_list, moving_stop_loss_dates, success_rate, cash_list, dates_list, local_max_list)
+    # Calculate MACD profit
+    macd_profit = end_cash_balance - start_cash_balance
+
+    stop_loss_buy_end_cash_balance = stop_loss_buy_cash + stop_loss_buy_shares * end_stock_val
+
+    stop_loss_buy_profit = stop_loss_buy_end_cash_balance - start_cash_balance
+        
+    return (end_cash_balance, stop_loss_buy_cash, stop_loss_buy_shares, moving_stop_loss_list, moving_stop_loss_dates, success_rate, cash_list, dates_list, local_max_list, macd_profit, stop_loss_buy_profit)

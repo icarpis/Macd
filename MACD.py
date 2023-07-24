@@ -135,18 +135,10 @@ def handle_stock(stock_list):
 
         import public.calc_cash
         start_cash_balance = 100
-        (end_cash_balance, stop_loss_buy_cash, stop_loss_buy_shares, moving_stop_loss_list, moving_stop_loss_dates, success_rate, cash_list, dates_list, local_max_list) = public.calc_cash.calc_cash_balance(INVEST_PERCENTAGE, start_cash_balance, df, stock_data["Close"][0], stock_data["Close"][-1], MOVING_STOP_LOSS)
+        (end_cash_balance, stop_loss_buy_cash, stop_loss_buy_shares, moving_stop_loss_list, moving_stop_loss_dates, success_rate, cash_list, dates_list, local_max_list, macd_profit, stop_loss_buy_profit) = public.calc_cash.calc_cash_balance(INVEST_PERCENTAGE, start_cash_balance, df, MOVING_STOP_LOSS, len(df))
 
         
         fig.add_trace(go.Scatter(x=moving_stop_loss_dates, y=moving_stop_loss_list, mode="markers", marker=dict(symbol="triangle-down", size=10, color="brown"), name=STOCK_NAME + " Moving Stop-Loss"))
-
-        # Calculate MACD profit
-        macd_profit = end_cash_balance - start_cash_balance
-
-        stop_loss_buy_end_cash_balance = stop_loss_buy_cash + stop_loss_buy_shares * df["Close"][-1]
-
-        stop_loss_buy_profit = stop_loss_buy_end_cash_balance - start_cash_balance
-
 
         print_signals(buy_signals, sell_signals, local_max_list)
         
