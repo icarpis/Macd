@@ -21,3 +21,15 @@ function showToast(text) {
   if (typeof android !== 'undefined')
 	  android.showToast(text);
 }
+
+
+$(function() {
+    $("td[colspan=3]").find("p").hide();
+    $("table").click(function(event) {
+        event.stopPropagation();
+        var $target = $(event.target);
+		if ( $target[0].colSpan == 1 ) {
+			$target.closest("tr").next().find("p").slideToggle();
+		}
+    });
+});

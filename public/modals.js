@@ -99,14 +99,30 @@ function addRow(stock, stop_loss) {
   }	
   
   var table = document.getElementById("myTable");
-  var row = table.insertRow(rowCount);
-  row.className = "success";
-  var cell1 = row.insertCell(0);
-  var cell2 = row.insertCell(1);
-  var cell3 = row.insertCell(2);
+  var row1 = table.insertRow(rowCount);
+  row1.className = "success";
+  row1.setAttribute("style", "line-height: 5px;");
+  
+  var cell1 = row1.insertCell(0);
+  var cell2 = row1.insertCell(1);
+  var cell3 = row1.insertCell(2);
   cell1.innerHTML = stock;
   cell2.innerHTML = stop_loss;
   cell3.innerHTML = "<button type=\"button\" class=\"btn btn-danger\" onclick=\"showRemoveRowModal('" + stock + "');\">-</button>";
+  
+  row2 = table.insertRow(rowCount + 1);
+  row2.setAttribute("style", "line-height: 5px;");
+  row2.className = "info";
+  cell1 = row2.insertCell(0);
+  cell1.setAttribute("colspan", "3");
+  
+  try {
+	  if (typeof android !== 'undefined') {
+		cell1.innerHTML = android.readStockData(stock);
+  }
+  } catch (error) {
+	console.error(error);
+  }
 }
 
 function showRemoveRowModal(stock) {
@@ -124,11 +140,12 @@ function showRemoveRowModal(stock) {
 			return;
 		}
 		
-		if (typeof android !== 'undefined') {			
+		if (typeof android !== 'undefined') {
 			android.removeData(stock);
 		}
   
 		var table = document.getElementById("myTable");
+		table.deleteRow(rowNum + 1);
 		table.deleteRow(rowNum);
 		cancelModal('#yesNoModal', '', '');
     };

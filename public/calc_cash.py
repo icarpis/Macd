@@ -83,7 +83,7 @@ def calc_cash_balance(INVEST_PERCENTAGE, start_cash_balance, df, MOVING_STOP_LOS
             #sell_signals["Close"][sell_idx] = df["Close"][i]
             after_buy = False
             
-            print("<br>MOVING_STOP_LOSS_SELL_SIGNAL: " + str(df["ActualDate"][i]) + "  " + str(df["Close"][i]))
+            print("<br>MOVING_STOP_LOSS_SELL_SIGNAL: " + str(df["ActualDate"][i]) + "  " + "{:.2f}".format(df["Close"][i]))
             
             cash_from_sale = stop_loss_buy_shares * df["Close"][i]  # calculate cash from selling shares
             
